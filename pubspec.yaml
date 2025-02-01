@@ -71,6 +71,8 @@ flutter:
   assets:
     - assets/marco-vertical.png
     - assets/marco-horizontal.png
+    - assets/marco-vertical2.png
+    - assets/marco-horizontal2.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

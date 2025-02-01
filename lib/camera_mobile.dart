@@ -15,14 +15,13 @@ class MobileCamera {
   bool _isCameraInitialized = false;
 
   Future<void> initialize(CameraController controller) async {
-  try {
-    await controller.initialize();
-    _isCameraInitialized = true;
-  } catch (e) {
-    print("Error al inicializar la cámara: $e");
+    try {
+      await controller.initialize();
+      _isCameraInitialized = true;
+    } catch (e) {
+      print("Error al inicializar la cámara: $e");
+    }
   }
-}
-
 
   Future<void> saveImageToGallery(Uint8List imageData, String fileName) async {
     const platform = MethodChannel('com.example.ones_photo_frame/gallery');
@@ -56,18 +55,11 @@ class MobileCamera {
     );
   }*/
 
-  Future<void> takePicture(
-      BuildContext context, CameraController _controller, String frameAsset) async {
+  Future<void> takePicture(BuildContext context, CameraController _controller,
+      String frameAsset) async {
     if (!_controller.value.isInitialized) return;
 
     try {
-      // Verificar permisos para la cámara
-      var cameraStatus = await Permission.camera.request();
-      if (!cameraStatus.isGranted) {
-        print('Permiso de cámara denegado');
-        return;
-      }
-
       // Capturar la imagen desde la cámara
       final image = await _controller.takePicture();
 
@@ -76,8 +68,7 @@ class MobileCamera {
           img.decodeImage(File(image.path).readAsBytesSync())!;
 
       // Cargar la imagen del marco desde los assets
-      final ByteData frameData =
-          await rootBundle.load(frameAsset);
+      final ByteData frameData = await rootBundle.load(frameAsset);
       final Uint8List frameBytes = frameData.buffer.asUint8List();
       final img.Image frameImage = img.decodeImage(frameBytes)!;
 
@@ -89,38 +80,21 @@ class MobileCamera {
       final img.Image finalImage =
           img.copyInto(cameraImage, resizedFrame, blend: true);
 
-      // Guardar la imagen en un archivo temporal
+      // Guardar la imagen final
       final Directory tempDir = await getTemporaryDirectory();
-      final String final_file_name =
-          '${DateTime.now().millisecondsSinceEpoch}.jpg';
       final String tempPath =
           '${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
       final File finalImageFile = File(tempPath)
         ..writeAsBytesSync(img.encodeJpg(finalImage));
 
-      // Guardar la imagen en la galería (carpeta "Ones" en Pictures)
+      // Guardar la imagen en la galería
       final Uint8List finalImageBytes =
           Uint8List.fromList(img.encodeJpg(finalImage));
-      await saveImageToGallery(finalImageBytes, final_file_name);
+      await saveImageToGallery(
+          finalImageBytes, 'marco_${DateTime.now().toIso8601String()}.jpg');
 
-      // Mostrar confirmación
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Foto capturada'),
-            content:
-                Text('La imagen se ha guardado correctamente en la galería'),
-            actions: [
-              TextButton(
-                child: Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Imagen guardada en la galería')),
       );
     } catch (e) {
       print('Error al tomar la foto: $e');

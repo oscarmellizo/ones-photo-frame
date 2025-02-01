@@ -49,17 +49,28 @@ class CameraWithFrame extends StatefulWidget {
 
 class _CameraWithFrameState extends State<CameraWithFrame> {
   late MobileCamera cameraHandler;
-  late CameraController _cameraController; // Crear el CameraController
-  bool _isCameraInitialized =
-      false; // Para indicar si la cámara está inicializada
+  late CameraController _cameraController;
+  bool _isCameraInitialized = false;
+
+  // Listas de marcos
+  final List<String> verticalFrames = [
+    'assets/marco-vertical.png',
+    'assets/marco-vertical2.png',
+  ];
+  final List<String> horizontalFrames = [
+    'assets/marco-horizontal.png',
+    'assets/marco-horizontal2.png',
+  ];
+
+  int currentFrameIndex = 0;
 
   @override
   void initState() {
     super.initState();
     cameraHandler = MobileCamera();
     _cameraController = CameraController(
-      widget.camera, // Utilizamos la cámara pasada al widget
-      ResolutionPreset.high, // Definimos una resolución para la cámara
+      widget.camera,
+      ResolutionPreset.high,
     );
     _initializeCamera();
   }
@@ -79,60 +90,92 @@ class _CameraWithFrameState extends State<CameraWithFrame> {
     }
   }
 
+  void changeFrame(int newIndex) {
+    setState(() {
+      currentFrameIndex = newIndex;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-// Detectar la orientación del dispositivo
     final orientation = MediaQuery.of(context).orientation;
-    // Seleccionar la imagen del marco según la orientación
-    final frameAsset = orientation == Orientation.portrait
-        ? 'assets/marco-vertical.png' // Marco para modo vertical
-        : 'assets/marco-horizontal.png'; // Marco para modo horizontal
+    final frameAsset = (orientation == Orientation.portrait)
+        ? verticalFrames[currentFrameIndex]
+        : horizontalFrames[currentFrameIndex];
 
     return Scaffold(
       body: _isCameraInitialized
-          ? LayoutBuilder(
-              // Usamos LayoutBuilder para conocer el tamaño exacto disponible
-              builder: (context, constraints) {
-                return Stack(
-                  children: [
-                    // La vista previa de la cámara, ajustada al tamaño de la pantalla
-                    Positioned.fill(
-                      child: AspectRatio(
-                        aspectRatio: _cameraController.value.aspectRatio,
-                        child: CameraPreview(
-                            _cameraController), // Vista previa de la cámara
+          ? Stack(
+              alignment: Alignment.center,
+              children: [
+                // Vista previa de la cámara
+                Positioned.fill(
+                  child: AspectRatio(
+                    aspectRatio: _cameraController.value.aspectRatio,
+                    child: CameraPreview(
+                        _cameraController), // Vista previa de la cámara
+                  ),
+                ),
+                // El marco se ajusta completamente a la pantalla
+                Positioned.fill(
+                  child: Image.asset(
+                    frameAsset, // Ruta del marco
+                    fit: BoxFit
+                        .fill, // Asegura que el marco cubra toda la pantalla
+                  ),
+                ),
+                // Botones del carrusel y de captura
+                Positioned(
+                  bottom: 50,
+                  left: 20,
+                  right: 20,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Botón para retroceder en el carrusel
+                      IconButton(
+                        iconSize: 40,
+                        icon: Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () {
+                          final maxIndex = (orientation == Orientation.portrait)
+                              ? verticalFrames.length
+                              : horizontalFrames.length;
+                          changeFrame(
+                              (currentFrameIndex - 1 + maxIndex) % maxIndex);
+                        },
                       ),
-                    ),
-                    // El marco se ajusta completamente a la pantalla
-                    Positioned.fill(
-                      child: Image.asset(
-                        frameAsset, // Ruta del marco
-                        fit: BoxFit
-                            .fill, // Asegura que el marco cubra toda la pantalla
+                      // Botón para tomar la foto
+                      FloatingActionButton(
+                        onPressed: () async {
+                          await cameraHandler.takePicture(
+                              context, _cameraController, frameAsset);
+                        },
+                        child: Icon(Icons.camera, color: Colors.black),
+                        backgroundColor: Colors.white,
                       ),
-                    ),
-                  ],
-                );
-              },
+                      // Botón para avanzar en el carrusel
+                      IconButton(
+                        iconSize: 40,
+                        icon: Icon(Icons.arrow_forward, color: Colors.white),
+                        onPressed: () {
+                          final maxIndex = (orientation == Orientation.portrait)
+                              ? verticalFrames.length
+                              : horizontalFrames.length;
+                          changeFrame((currentFrameIndex + 1) % maxIndex);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             )
-          : Center(
-              child:
-                  CircularProgressIndicator()), // Mostrar el indicador mientras se inicializa la cámara
-      floatingActionButton: _isCameraInitialized
-          ? FloatingActionButton(
-              onPressed: () async {
-                await cameraHandler.takePicture(context, _cameraController, frameAsset);
-              },
-              child: Icon(Icons.camera),
-            )
-          : null,
+          : Center(child: CircularProgressIndicator()),
     );
   }
 
   @override
   void dispose() {
-    _cameraController
-        .dispose(); // Limpiar el controlador cuando se termine de usar
+    _cameraController.dispose();
     super.dispose();
   }
 }
