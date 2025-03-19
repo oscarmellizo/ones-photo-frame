@@ -54,12 +54,33 @@ class _CameraWithFrameState extends State<CameraWithFrame> {
 
   // Listas de marcos
   final List<String> verticalFrames = [
-    'assets/marco-vertical.png',
-    'assets/marco-vertical2.png',
+    'assets/marco-nacional-v.png',
+    'assets/marco-santafe-v.png',
+    'assets/marco-millos-v.png',
+    'assets/marco-colombia-v.png',
+    'assets/marco-cumple-v.png',
+    'assets/marco-birthday-v.png',
+    'assets/marco-party-v.png',
+    'assets/marco-karaoke-v.png',
+    'assets/marco-patricks-v.png',
+    'assets/marco-christmas-v.png',
+    'assets/marco-valentines-v.png',
+    'assets/marco-halloween-v.png',
+    
   ];
   final List<String> horizontalFrames = [
-    'assets/marco-horizontal.png',
-    'assets/marco-horizontal2.png',
+    'assets/marco-nacional-h.png',
+    'assets/marco-santafe-h.png',
+    'assets/marco-millos-h.png',
+    'assets/marco-colombia-h.png',
+    'assets/marco-cumple-h.png',
+    'assets/marco-birthday-h.png',
+    'assets/marco-party-h.png',
+    'assets/marco-karaoke-h.png',
+    'assets/marco-patricks-h.png',
+    'assets/marco-christmas-h.png',
+    'assets/marco-valentines-h.png',
+    'assets/marco-halloween-h.png',
   ];
 
   int currentFrameIndex = 0;
